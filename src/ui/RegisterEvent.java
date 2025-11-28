@@ -97,11 +97,49 @@ public class RegisterEvent extends JFrame {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT e.event_id, e.event_name, e.event_date FROM event e " +
-                         "WHERE e.event_id NOT IN (SELECT event_id FROM participation WHERE participant_id = ?) " +
-                         "ORDER BY e.event_date";
+            
+            // Get student's email to find associated participant
+            String studentSql = "SELECT email FROM student WHERE student_id = ?";
+            PreparedStatement studentPstmt = conn.prepareStatement(studentSql);
+            studentPstmt.setInt(1, studentId);
+            ResultSet studentRs = studentPstmt.executeQuery();
+            
+            String email = null;
+            if (studentRs.next()) {
+                email = studentRs.getString("email");
+            }
+            studentRs.close();
+            studentPstmt.close();
+            
+            if (email == null) {
+                eventCombo.addItem("Error: Student not found");
+                return;
+            }
+            
+            // Get participant_id from email
+            String participantSql = "SELECT participant_id FROM participant WHERE email = ?";
+            PreparedStatement participantPstmt = conn.prepareStatement(participantSql);
+            participantPstmt.setString(1, email);
+            ResultSet participantRs = participantPstmt.executeQuery();
+            
+            int participantId = -1;
+            if (participantRs.next()) {
+                participantId = participantRs.getInt("participant_id");
+            }
+            participantRs.close();
+            participantPstmt.close();
+            
+            // Load events - either registered or available
+            String sql = "SELECT e.event_id, e.event_name, e.event_date FROM event e ";
+            if (participantId > 0) {
+                sql += "WHERE e.event_id NOT IN (SELECT event_id FROM participation WHERE participant_id = ?) ";
+            }
+            sql += "ORDER BY e.event_date";
+            
             PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, studentId);
+            if (participantId > 0) {
+                pstmt.setInt(1, participantId);
+            }
             ResultSet rs = pstmt.executeQuery();
 
             boolean hasEvents = false;
@@ -136,9 +174,59 @@ public class RegisterEvent extends JFrame {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
+            
+            // First, get student details and check if participant record exists
+            String studentSql = "SELECT full_name, department_id, email FROM student WHERE student_id = ?";
+            PreparedStatement studentPstmt = conn.prepareStatement(studentSql);
+            studentPstmt.setInt(1, studentId);
+            ResultSet studentRs = studentPstmt.executeQuery();
+            
+            if (!studentRs.next()) {
+                JOptionPane.showMessageDialog(this, "Student record not found!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            String studentName = studentRs.getString("full_name");
+            int deptId = studentRs.getInt("department_id");
+            String email = studentRs.getString("email");
+            
+            studentRs.close();
+            studentPstmt.close();
+            
+            // Check if participant record already exists for this student
+            String checkParticipantSql = "SELECT participant_id FROM participant WHERE email = ?";
+            PreparedStatement checkPstmt = conn.prepareStatement(checkParticipantSql);
+            checkPstmt.setString(1, email);
+            ResultSet checkRs = checkPstmt.executeQuery();
+            
+            int participantId = -1;
+            if (checkRs.next()) {
+                participantId = checkRs.getInt("participant_id");
+            }
+            checkRs.close();
+            checkPstmt.close();
+            
+            // If no participant record, create one
+            if (participantId == -1) {
+                String insertParticipantSql = "INSERT INTO participant (participant_name, department_id, email) VALUES (?, ?, ?)";
+                PreparedStatement insertPstmt = conn.prepareStatement(insertParticipantSql, PreparedStatement.RETURN_GENERATED_KEYS);
+                insertPstmt.setString(1, studentName);
+                insertPstmt.setInt(2, deptId);
+                insertPstmt.setString(3, email);
+                insertPstmt.executeUpdate();
+                
+                ResultSet generatedKeys = insertPstmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    participantId = generatedKeys.getInt(1);
+                }
+                generatedKeys.close();
+                insertPstmt.close();
+            }
+            
+            // Now register for the event using the participant_id
             String sql = "INSERT INTO participation (participant_id, event_id, score) VALUES (?, ?, 0)";
             PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, studentId);
+            pstmt.setInt(1, participantId);
             pstmt.setInt(2, eventId);
 
             int result = pstmt.executeUpdate();
