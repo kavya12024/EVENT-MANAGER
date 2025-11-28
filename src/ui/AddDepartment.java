@@ -105,7 +105,17 @@ public class AddDepartment extends JFrame {
 
             int result = pstmt.executeUpdate();
             if (result > 0) {
-                JOptionPane.showMessageDialog(this, "Department added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                // Get the generated department ID
+                java.sql.Statement stmt = conn.createStatement();
+                java.sql.ResultSet rs = stmt.executeQuery("SELECT LAST_INSERT_ID() as dept_id");
+                int deptId = -1;
+                if (rs.next()) {
+                    deptId = rs.getInt("dept_id");
+                }
+                rs.close();
+                stmt.close();
+                
+                JOptionPane.showMessageDialog(this, "Department added successfully!\n\nDepartment ID: " + deptId + "\nDepartment Name: " + deptName, "Success", JOptionPane.INFORMATION_MESSAGE);
                 deptNameField.setText("");
                 dispose();
             }

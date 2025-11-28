@@ -13,7 +13,6 @@ public class Login extends JFrame {
     private JButton adminLoginBtn;
     private JButton studentLoginBtn;
     private JLabel titleLabel;
-    private int studentId = -1;
 
     public Login() {
         setTitle("College Event Management System - Login");
@@ -101,10 +100,8 @@ public class Login extends JFrame {
 
         JLabel deptLabel = new JLabel("Department:");
         deptLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        String[] departments = {"Select Department", "Computer Science", "Mechanical Engineering", 
-                               "Electrical Engineering", "Civil Engineering", "Electronics"};
-        JComboBox<String> deptCombo = new JComboBox<>(departments);
-        deptCombo.setSelectedIndex(0);
+        JComboBox<String> deptCombo = new JComboBox<>();
+        loadDepartmentsForLogin(deptCombo);
 
         JLabel emailLabel = new JLabel("Email:");
         emailLabel.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -139,8 +136,8 @@ public class Login extends JFrame {
                     return;
                 }
 
-                // Get department ID based on selected name
-                int deptId = getDepartmentIdByName(selectedDept);
+                // Get department ID based on selected combo value
+                int deptId = getDepartmentIdFromCombo(selectedDept);
                 if (deptId <= 0) {
                     JOptionPane.showMessageDialog(this, "Invalid department!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
@@ -160,14 +157,39 @@ public class Login extends JFrame {
         }
     }
 
-    private int getDepartmentIdByName(String deptName) {
-        switch(deptName) {
-            case "Computer Science": return 1;
-            case "Mechanical Engineering": return 2;
-            case "Electrical Engineering": return 3;
-            case "Civil Engineering": return 4;
-            case "Electronics": return 5;
-            default: return -1;
+    private void loadDepartmentsForLogin(JComboBox<String> deptCombo) {
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "SELECT dept_id, dept_name FROM department ORDER BY dept_id";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
+            
+            deptCombo.addItem("Select Department");
+            
+            while (rs.next()) {
+                int deptId = rs.getInt("dept_id");
+                String deptName = rs.getString("dept_name");
+                deptCombo.addItem(deptId + " - " + deptName);
+            }
+            
+            rs.close();
+            pstmt.close();
+            DBConnection.closeConnection(conn);
+        } catch (Exception e) {
+            deptCombo.addItem("Error loading departments");
+        }
+    }
+
+    private int getDepartmentIdFromCombo(String selectedDept) {
+        if (selectedDept.equals("Select Department")) {
+            return -1;
+        }
+        try {
+            // Extract ID from "1 - Computer Science"
+            String[] parts = selectedDept.split(" - ");
+            return Integer.parseInt(parts[0]);
+        } catch (Exception e) {
+            return -1;
         }
     }
 
