@@ -96,8 +96,15 @@ public class Login extends JFrame {
     }
 
     private void showStudentLoginDialog() {
-        JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        JLabel deptLabel = new JLabel("Department:");
+        deptLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        String[] departments = {"Select Department", "Computer Science", "Mechanical Engineering", 
+                               "Electrical Engineering", "Civil Engineering", "Electronics"};
+        JComboBox<String> deptCombo = new JComboBox<>(departments);
+        deptCombo.setSelectedIndex(0);
 
         JLabel emailLabel = new JLabel("Email:");
         emailLabel.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -107,6 +114,8 @@ public class Login extends JFrame {
         passwordLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         JPasswordField passwordField = new JPasswordField(10);
 
+        panel.add(deptLabel);
+        panel.add(deptCombo);
         panel.add(emailLabel);
         panel.add(emailField);
         panel.add(passwordLabel);
@@ -116,21 +125,34 @@ public class Login extends JFrame {
 
         if (result == JOptionPane.OK_OPTION) {
             try {
+                String selectedDept = (String) deptCombo.getSelectedItem();
                 String email = emailField.getText().trim();
                 String password = new String(passwordField.getPassword());
+
+                if (selectedDept.equals("Select Department")) {
+                    JOptionPane.showMessageDialog(this, "Please select a department!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
                 if (email.isEmpty() || password.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Email and password are required!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
+                // Get department ID based on selected name
+                int deptId = getDepartmentIdByName(selectedDept);
+                if (deptId <= 0) {
+                    JOptionPane.showMessageDialog(this, "Invalid department!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
                 // Validate credentials and get student ID
-                int retrievedStudentId = validateAndGetStudentId(email, password);
+                int retrievedStudentId = validateAndGetStudentId(email, password, deptId);
                 if (retrievedStudentId > 0) {
                     this.dispose();
                     new StudentDashboard(retrievedStudentId);
                 } else {
-                    JOptionPane.showMessageDialog(this, "Invalid email or password!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Invalid email, password, or department!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Login error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -138,13 +160,25 @@ public class Login extends JFrame {
         }
     }
 
-    private int validateAndGetStudentId(String email, String password) {
+    private int getDepartmentIdByName(String deptName) {
+        switch(deptName) {
+            case "Computer Science": return 1;
+            case "Mechanical Engineering": return 2;
+            case "Electrical Engineering": return 3;
+            case "Civil Engineering": return 4;
+            case "Electronics": return 5;
+            default: return -1;
+        }
+    }
+
+    private int validateAndGetStudentId(String email, String password, int deptId) {
         try {
             Connection conn = DBConnection.getConnection();
-            String sql = "SELECT student_id FROM student WHERE email = ? AND password = ? AND is_active = 1";
+            String sql = "SELECT student_id FROM student WHERE email = ? AND password = ? AND department_id = ? AND is_active = 1";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, email);
             pstmt.setString(2, password);
+            pstmt.setInt(3, deptId);
             
             ResultSet rs = pstmt.executeQuery();
             int studentId = -1;
@@ -161,29 +195,6 @@ public class Login extends JFrame {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             return -1;
-        }
-    }
-
-    private boolean validateStudentCredentials(int studentId, String email, String password) {
-        try {
-            Connection conn = DBConnection.getConnection();
-            String sql = "SELECT student_id FROM student WHERE student_id = ? AND email = ? AND password = ? AND is_active = 1";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, studentId);
-            pstmt.setString(2, email);
-            pstmt.setString(3, password);
-            
-            ResultSet rs = pstmt.executeQuery();
-            boolean found = rs.next();
-            
-            DBConnection.closeResultSet(rs);
-            DBConnection.closeStatement(pstmt);
-            DBConnection.closeConnection(conn);
-            
-            return found;
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            return false;
         }
     }
 
