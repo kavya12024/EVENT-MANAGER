@@ -90,7 +90,7 @@ public class AddOrganiser extends JFrame {
             }
         });
 
-        cancelBtn = new JButton("Cancel");
+        cancelBtn = new JButton("Back");
         cancelBtn.setFont(new Font("Arial", Font.BOLD, 12));
         cancelBtn.setBackground(new Color(231, 76, 60));
         cancelBtn.setForeground(Color.WHITE);
