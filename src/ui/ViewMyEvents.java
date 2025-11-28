@@ -61,6 +61,43 @@ public class ViewMyEvents extends JFrame {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
+            
+            // First get student email to find participant_id
+            String studentSql = "SELECT email FROM student WHERE student_id = ?";
+            PreparedStatement studentPstmt = conn.prepareStatement(studentSql);
+            studentPstmt.setInt(1, studentId);
+            ResultSet studentRs = studentPstmt.executeQuery();
+            
+            String email = null;
+            if (studentRs.next()) {
+                email = studentRs.getString("email");
+            }
+            studentRs.close();
+            studentPstmt.close();
+            
+            if (email == null) {
+                JOptionPane.showMessageDialog(this, "Student record not found!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Get participant_id from email
+            String participantSql = "SELECT participant_id FROM participant WHERE email = ?";
+            PreparedStatement participantPstmt = conn.prepareStatement(participantSql);
+            participantPstmt.setString(1, email);
+            ResultSet participantRs = participantPstmt.executeQuery();
+            
+            int participantId = -1;
+            if (participantRs.next()) {
+                participantId = participantRs.getInt("participant_id");
+            }
+            participantRs.close();
+            participantPstmt.close();
+            
+            if (participantId <= 0) {
+                JOptionPane.showMessageDialog(this, "You have not registered for any events yet!", "Info", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            
             String sql = "SELECT e.event_id, e.event_name, e.event_date, o.organiser_name, e.event_description " +
                          "FROM participation p " +
                          "JOIN event e ON p.event_id = e.event_id " +
@@ -68,7 +105,7 @@ public class ViewMyEvents extends JFrame {
                          "WHERE p.participant_id = ? " +
                          "ORDER BY e.event_date DESC";
             PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, studentId);
+            pstmt.setInt(1, participantId);
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
