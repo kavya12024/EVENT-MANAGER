@@ -342,18 +342,26 @@ public class Login extends JFrame {
                                      String year, String semester, String phone, String password, String confirmPassword, JDialog parentDialog) {
         // Validation
         if (name.isEmpty() || enrollment.isEmpty() || department.isEmpty() || 
-            email.isEmpty() || year.isEmpty() || semester.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            email.isEmpty() || year.isEmpty() || semester.isEmpty() || phone.isEmpty() || 
+            password.isEmpty() || confirmPassword.isEmpty()) {
             JOptionPane.showMessageDialog(parentDialog, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Email validation
+        if (!isValidEmail(email)) {
+            JOptionPane.showMessageDialog(parentDialog, "Please enter a valid email address!\n(Must contain @ and proper format)", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Phone number validation - must be 10 digits
+        if (!isValidPhoneNumber(phone)) {
+            JOptionPane.showMessageDialog(parentDialog, "Phone number must be exactly 10 digits!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         if (!password.equals(confirmPassword)) {
             JOptionPane.showMessageDialog(parentDialog, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (!email.contains("@")) {
-            JOptionPane.showMessageDialog(parentDialog, "Please enter a valid email address!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -408,6 +416,18 @@ public class Login extends JFrame {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(parentDialog, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private boolean isValidEmail(String email) {
+        // Email validation: must contain @ and a domain
+        String emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        return email.matches(emailPattern);
+    }
+
+    private boolean isValidPhoneNumber(String phone) {
+        // Phone validation: must be exactly 10 digits
+        String phonePattern = "^[0-9]{10}$";
+        return phone.matches(phonePattern);
     }
 
     public static void main(String[] args) {
