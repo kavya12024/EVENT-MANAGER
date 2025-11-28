@@ -189,7 +189,7 @@ public class Login extends JFrame {
 
     private void showStudentRegistrationDialog() {
         JDialog registrationFrame = new JDialog(this, "Student Registration", true);
-        registrationFrame.setSize(550, 550);
+        registrationFrame.setSize(700, 600);
         registrationFrame.setLocationRelativeTo(this);
         registrationFrame.setResizable(false);
 
@@ -205,56 +205,78 @@ public class Login extends JFrame {
         headerLabel.setForeground(Color.WHITE);
         headerPanel.add(headerLabel);
 
-        // Form Panel - Changed to GridLayout(8, 2) to include Year and Semester
-        JPanel formPanel = new JPanel(new GridLayout(8, 2, 15, 15));
+        // Form Panel - Using GridBagLayout for proper alignment
+        JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         formPanel.setBackground(new Color(240, 240, 240));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JLabel nameLabel = new JLabel("Full Name:");
-        JTextField nameField = new JTextField();
+        JTextField nameField = new JTextField(15);
 
         JLabel enrollLabel = new JLabel("Enrollment No:");
-        JTextField enrollField = new JTextField();
+        JTextField enrollField = new JTextField(15);
 
-        JLabel deptLabel = new JLabel("Department ID:");
-        JTextField deptField = new JTextField();
+        JLabel deptLabel = new JLabel("Department:");
+        String[] departments = {"1 - Computer Science", "2 - Mechanical Engineering", 
+                               "3 - Electrical Engineering", "4 - Civil Engineering", "5 - Electronics"};
+        JComboBox<String> deptCombo = new JComboBox<>(departments);
+        deptCombo.setSelectedIndex(0);
 
         JLabel emailLabel = new JLabel("Email:");
-        JTextField emailField = new JTextField();
+        JTextField emailField = new JTextField(15);
 
         JLabel yearLabel = new JLabel("Year (1-4):");
-        JTextField yearField = new JTextField("1");
+        JComboBox<Integer> yearCombo = new JComboBox<>(new Integer[]{1, 2, 3, 4});
+        yearCombo.setSelectedIndex(0);
 
         JLabel semLabel = new JLabel("Semester (1-8):");
-        JTextField semField = new JTextField("1");
+        JComboBox<Integer> semCombo = new JComboBox<>(new Integer[]{1, 2, 3, 4, 5, 6, 7, 8});
+        semCombo.setSelectedIndex(0);
 
         JLabel phoneLabel = new JLabel("Phone:");
-        JTextField phoneField = new JTextField();
+        JTextField phoneField = new JTextField(15);
 
         JLabel passwordLabel = new JLabel("Password:");
-        JPasswordField passwordField = new JPasswordField();
+        JPasswordField passwordField = new JPasswordField(15);
 
         JLabel confirmPassLabel = new JLabel("Confirm Password:");
-        JPasswordField confirmPassField = new JPasswordField();
+        JPasswordField confirmPassField = new JPasswordField(15);
 
-        formPanel.add(nameLabel);
-        formPanel.add(nameField);
-        formPanel.add(enrollLabel);
-        formPanel.add(enrollField);
-        formPanel.add(deptLabel);
-        formPanel.add(deptField);
-        formPanel.add(emailLabel);
-        formPanel.add(emailField);
-        formPanel.add(yearLabel);
-        formPanel.add(yearField);
-        formPanel.add(semLabel);
-        formPanel.add(semField);
-        formPanel.add(phoneLabel);
-        formPanel.add(phoneField);
-        formPanel.add(passwordLabel);
-        formPanel.add(passwordField);
-        formPanel.add(confirmPassLabel);
-        formPanel.add(confirmPassField);
+        // Row 1: Full Name & Enrollment No
+        gbc.gridx = 0; gbc.gridy = 0; formPanel.add(nameLabel, gbc);
+        gbc.gridx = 1; formPanel.add(nameField, gbc);
+        gbc.gridx = 2; formPanel.add(enrollLabel, gbc);
+        gbc.gridx = 3; formPanel.add(enrollField, gbc);
+
+        // Row 2: Department & Email
+        gbc.gridx = 0; gbc.gridy = 1; formPanel.add(deptLabel, gbc);
+        gbc.gridx = 1; formPanel.add(deptCombo, gbc);
+        gbc.gridx = 2; formPanel.add(emailLabel, gbc);
+        gbc.gridx = 3; formPanel.add(emailField, gbc);
+
+        // Row 3: Year & Semester
+        gbc.gridx = 0; gbc.gridy = 2; formPanel.add(yearLabel, gbc);
+        gbc.gridx = 1; formPanel.add(yearCombo, gbc);
+        gbc.gridx = 2; formPanel.add(semLabel, gbc);
+        gbc.gridx = 3; formPanel.add(semCombo, gbc);
+
+        // Row 4: Phone
+        gbc.gridx = 0; gbc.gridy = 3; formPanel.add(phoneLabel, gbc);
+        gbc.gridx = 1; gbc.gridwidth = 3; formPanel.add(phoneField, gbc);
+        gbc.gridwidth = 1;
+
+        // Row 5: Password
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 1; formPanel.add(passwordLabel, gbc);
+        gbc.gridx = 1; gbc.gridwidth = 3; formPanel.add(passwordField, gbc);
+        gbc.gridwidth = 1;
+
+        // Row 6: Confirm Password
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1; formPanel.add(confirmPassLabel, gbc);
+        gbc.gridx = 1; gbc.gridwidth = 3; formPanel.add(confirmPassField, gbc);
+        gbc.gridwidth = 1;
 
         // Button Panel
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 0));
@@ -270,8 +292,12 @@ public class Login extends JFrame {
         registerBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                registerNewStudent(nameField.getText(), enrollField.getText(), deptField.getText(),
-                        emailField.getText(), yearField.getText(), semField.getText(), phoneField.getText(),
+                String deptStr = (String) deptCombo.getSelectedItem();
+                String dept = deptStr.substring(0, 1); // Extract just the number
+                int year = (Integer) yearCombo.getSelectedItem();
+                int semester = (Integer) semCombo.getSelectedItem();
+                registerNewStudent(nameField.getText(), enrollField.getText(), dept,
+                        emailField.getText(), String.valueOf(year), String.valueOf(semester), phoneField.getText(),
                         new String(passwordField.getPassword()),
                         new String(confirmPassField.getPassword()), registrationFrame);
             }
