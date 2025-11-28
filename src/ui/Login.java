@@ -1,9 +1,13 @@
 package ui;
 
+import db.DBConnection;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class Login extends JFrame {
     private JButton adminLoginBtn;
@@ -146,14 +150,31 @@ public class Login extends JFrame {
     }
 
     private boolean validateStudentCredentials(int studentId, String email, String password) {
-        // Simple validation - you can enhance this with database queries
-        // For now, accepting student1@college.edu / student123 as demo credential
-        return email.equals("student1@college.edu") && password.equals("student123");
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "SELECT student_id FROM student WHERE student_id = ? AND email = ? AND password = ? AND is_active = 1";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, studentId);
+            pstmt.setString(2, email);
+            pstmt.setString(3, password);
+            
+            ResultSet rs = pstmt.executeQuery();
+            boolean found = rs.next();
+            
+            DBConnection.closeResultSet(rs);
+            DBConnection.closeStatement(pstmt);
+            DBConnection.closeConnection(conn);
+            
+            return found;
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
     }
 
     private void showStudentRegistrationDialog() {
         JDialog registrationFrame = new JDialog(this, "Student Registration", true);
-        registrationFrame.setSize(500, 450);
+        registrationFrame.setSize(550, 550);
         registrationFrame.setLocationRelativeTo(this);
         registrationFrame.setResizable(false);
 
@@ -169,8 +190,8 @@ public class Login extends JFrame {
         headerLabel.setForeground(Color.WHITE);
         headerPanel.add(headerLabel);
 
-        // Form Panel
-        JPanel formPanel = new JPanel(new GridLayout(6, 2, 15, 15));
+        // Form Panel - Changed to GridLayout(8, 2) to include Year and Semester
+        JPanel formPanel = new JPanel(new GridLayout(8, 2, 15, 15));
         formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         formPanel.setBackground(new Color(240, 240, 240));
 
@@ -180,11 +201,20 @@ public class Login extends JFrame {
         JLabel enrollLabel = new JLabel("Enrollment No:");
         JTextField enrollField = new JTextField();
 
-        JLabel deptLabel = new JLabel("Department:");
+        JLabel deptLabel = new JLabel("Department ID:");
         JTextField deptField = new JTextField();
 
         JLabel emailLabel = new JLabel("Email:");
         JTextField emailField = new JTextField();
+
+        JLabel yearLabel = new JLabel("Year (1-4):");
+        JTextField yearField = new JTextField("1");
+
+        JLabel semLabel = new JLabel("Semester (1-8):");
+        JTextField semField = new JTextField("1");
+
+        JLabel phoneLabel = new JLabel("Phone:");
+        JTextField phoneField = new JTextField();
 
         JLabel passwordLabel = new JLabel("Password:");
         JPasswordField passwordField = new JPasswordField();
@@ -200,6 +230,12 @@ public class Login extends JFrame {
         formPanel.add(deptField);
         formPanel.add(emailLabel);
         formPanel.add(emailField);
+        formPanel.add(yearLabel);
+        formPanel.add(yearField);
+        formPanel.add(semLabel);
+        formPanel.add(semField);
+        formPanel.add(phoneLabel);
+        formPanel.add(phoneField);
         formPanel.add(passwordLabel);
         formPanel.add(passwordField);
         formPanel.add(confirmPassLabel);
@@ -220,7 +256,8 @@ public class Login extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 registerNewStudent(nameField.getText(), enrollField.getText(), deptField.getText(),
-                        emailField.getText(), new String(passwordField.getPassword()),
+                        emailField.getText(), yearField.getText(), semField.getText(), phoneField.getText(),
+                        new String(passwordField.getPassword()),
                         new String(confirmPassField.getPassword()), registrationFrame);
             }
         });
@@ -250,10 +287,10 @@ public class Login extends JFrame {
     }
 
     private void registerNewStudent(String name, String enrollment, String department, String email,
-                                     String password, String confirmPassword, JDialog parentDialog) {
+                                     String year, String semester, String phone, String password, String confirmPassword, JDialog parentDialog) {
         // Validation
         if (name.isEmpty() || enrollment.isEmpty() || department.isEmpty() || 
-            email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            email.isEmpty() || year.isEmpty() || semester.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             JOptionPane.showMessageDialog(parentDialog, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -273,17 +310,52 @@ public class Login extends JFrame {
             return;
         }
 
-        // Here you would add database insertion code
-        // For now, showing success message
-        JOptionPane.showMessageDialog(parentDialog, 
-            "Registration successful!\n\nName: " + name + 
-            "\nEnrollment: " + enrollment + 
-            "\nDepartment: " + department + 
-            "\nEmail: " + email + 
-            "\n\nYou can now login with your email and password.",
-            "Registration Successful", JOptionPane.INFORMATION_MESSAGE);
+        try {
+            int deptId = Integer.parseInt(department);
+            int yearVal = Integer.parseInt(year);
+            int semVal = Integer.parseInt(semester);
 
-        parentDialog.dispose();
+            if (deptId <= 0 || yearVal < 1 || yearVal > 4 || semVal < 1 || semVal > 8) {
+                JOptionPane.showMessageDialog(parentDialog, "Invalid Department ID (1-4), Year (1-4), or Semester (1-8)!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Insert into database
+            Connection conn = DBConnection.getConnection();
+            String sql = "INSERT INTO student (email, password, full_name, enrollment_no, department_id, year, semester, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, email);
+            pstmt.setString(2, password);
+            pstmt.setString(3, name);
+            pstmt.setString(4, enrollment);
+            pstmt.setInt(5, deptId);
+            pstmt.setInt(6, yearVal);
+            pstmt.setInt(7, semVal);
+            pstmt.setString(8, phone);
+
+            int result = pstmt.executeUpdate();
+            DBConnection.closeStatement(pstmt);
+            DBConnection.closeConnection(conn);
+
+            if (result > 0) {
+                JOptionPane.showMessageDialog(parentDialog, 
+                    "Registration successful!\n\nName: " + name + 
+                    "\nEnrollment: " + enrollment + 
+                    "\nDepartment: " + deptId + 
+                    "\nYear: " + yearVal + 
+                    "\nSemester: " + semVal +
+                    "\nEmail: " + email + 
+                    "\n\nYou can now login with your email and password.",
+                    "Registration Successful", JOptionPane.INFORMATION_MESSAGE);
+                parentDialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(parentDialog, "Registration failed!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(parentDialog, "Please enter valid numbers for Department ID, Year, and Semester!", "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(parentDialog, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     public static void main(String[] args) {
