@@ -96,12 +96,8 @@ public class Login extends JFrame {
     }
 
     private void showStudentLoginDialog() {
-        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-        JLabel idLabel = new JLabel("Student ID:");
-        idLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        JTextField idField = new JTextField(10);
 
         JLabel emailLabel = new JLabel("Email:");
         emailLabel.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -111,8 +107,6 @@ public class Login extends JFrame {
         passwordLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         JPasswordField passwordField = new JPasswordField(10);
 
-        panel.add(idLabel);
-        panel.add(idField);
         panel.add(emailLabel);
         panel.add(emailField);
         panel.add(passwordLabel);
@@ -122,30 +116,51 @@ public class Login extends JFrame {
 
         if (result == JOptionPane.OK_OPTION) {
             try {
-                String idText = idField.getText().trim();
                 String email = emailField.getText().trim();
                 String password = new String(passwordField.getPassword());
 
-                if (idText.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
+                if (email.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Email and password are required!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                studentId = Integer.parseInt(idText);
-                if (studentId > 0) {
-                    // Validate credentials (you can add database validation here)
-                    if (validateStudentCredentials(studentId, email, password)) {
-                        this.dispose();
-                        new StudentDashboard(studentId);
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Invalid credentials!", "Error", JOptionPane.ERROR_MESSAGE);
-                    }
+                // Validate credentials and get student ID
+                int retrievedStudentId = validateAndGetStudentId(email, password);
+                if (retrievedStudentId > 0) {
+                    this.dispose();
+                    new StudentDashboard(retrievedStudentId);
                 } else {
-                    JOptionPane.showMessageDialog(this, "Invalid Student ID!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Invalid email or password!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter a valid Student ID!", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Login error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    private int validateAndGetStudentId(String email, String password) {
+        try {
+            Connection conn = DBConnection.getConnection();
+            String sql = "SELECT student_id FROM student WHERE email = ? AND password = ? AND is_active = 1";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, email);
+            pstmt.setString(2, password);
+            
+            ResultSet rs = pstmt.executeQuery();
+            int studentId = -1;
+            
+            if (rs.next()) {
+                studentId = rs.getInt("student_id");
+            }
+            
+            DBConnection.closeResultSet(rs);
+            DBConnection.closeStatement(pstmt);
+            DBConnection.closeConnection(conn);
+            
+            return studentId;
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            return -1;
         }
     }
 
