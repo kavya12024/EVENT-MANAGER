@@ -15,7 +15,23 @@ CREATE TABLE department (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Table 2: Organiser
+-- Table 2: Student
+CREATE TABLE student (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    enrollment_no VARCHAR(50) UNIQUE,
+    department_id INT NOT NULL,
+    year INT DEFAULT 1,
+    semester INT DEFAULT 1,
+    phone VARCHAR(15),
+    is_active BOOLEAN DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (department_id) REFERENCES department(dept_id) ON DELETE CASCADE
+);
+
+-- Table 3: Organiser
 CREATE TABLE organiser (
     organiser_id INT PRIMARY KEY AUTO_INCREMENT,
     organiser_name VARCHAR(100) NOT NULL,
@@ -26,7 +42,7 @@ CREATE TABLE organiser (
     FOREIGN KEY (dept_id) REFERENCES department(dept_id) ON DELETE CASCADE
 );
 
--- Table 3: Participant
+-- Table 4: Participant
 CREATE TABLE participant (
     participant_id INT PRIMARY KEY AUTO_INCREMENT,
     participant_name VARCHAR(100) NOT NULL,
@@ -37,7 +53,7 @@ CREATE TABLE participant (
     FOREIGN KEY (department_id) REFERENCES department(dept_id) ON DELETE CASCADE
 );
 
--- Table 4: Event
+-- Table 5: Event
 CREATE TABLE event (
     event_id INT PRIMARY KEY AUTO_INCREMENT,
     event_name VARCHAR(150) NOT NULL,
@@ -49,7 +65,7 @@ CREATE TABLE event (
     FOREIGN KEY (organiser_id) REFERENCES organiser(organiser_id) ON DELETE CASCADE
 );
 
--- Table 5: Participation
+-- Table 6: Participation
 CREATE TABLE participation (
     participation_id INT PRIMARY KEY AUTO_INCREMENT,
     participant_id INT NOT NULL,
@@ -99,6 +115,20 @@ INSERT INTO department (dept_name) VALUES
 ('Electrical Engineering'),
 ('Civil Engineering'),
 ('Electronics');
+
+-- Insert Students (New Table)
+INSERT INTO student (email, password, full_name, enrollment_no, department_id, year, semester, phone) VALUES 
+('aarav@student.edu', 'pass123', 'Aarav Gupta', 'CS001', 1, 2, 3, '9876543220'),
+('bhavna@student.edu', 'pass123', 'Bhavna Singh', 'CS002', 1, 2, 3, '9876543221'),
+('chetan@student.edu', 'pass123', 'Chetan Verma', 'CS003', 1, 2, 3, '9876543222'),
+('diana@student.edu', 'pass123', 'Diana Kapoor', 'ME001', 2, 3, 5, '9876543223'),
+('eshan@student.edu', 'pass123', 'Eshan Malhotra', 'ME002', 2, 3, 5, '9876543224'),
+('farhan@student.edu', 'pass123', 'Farhan Khan', 'EE001', 3, 1, 1, '9876543225'),
+('gitanjali@student.edu', 'pass123', 'Gitanjali Roy', 'EE002', 3, 1, 1, '9876543226'),
+('harsh@student.edu', 'pass123', 'Harsh Saxena', 'CE001', 4, 4, 7, '9876543227'),
+('ishita@student.edu', 'pass123', 'Ishita Prabhu', 'CS004', 1, 2, 3, '9876543228'),
+('jaideep@student.edu', 'pass123', 'Jaideep Nair', 'ME003', 2, 3, 5, '9876543229'),
+('student1@college.edu', 'student123', 'Demo Student', 'DEMO001', 1, 2, 4, '9999999999');
 
 -- Insert Organisers
 INSERT INTO organiser (organiser_name, dept_id, email, phone) VALUES 
