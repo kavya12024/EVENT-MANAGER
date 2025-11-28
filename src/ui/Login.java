@@ -78,24 +78,50 @@ public class Login extends JFrame {
     }
 
     private void showStudentLoginDialog() {
-        JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        JLabel label = new JLabel("Enter Student ID:");
-        label.setFont(new Font("Arial", Font.PLAIN, 12));
+        JLabel idLabel = new JLabel("Student ID:");
+        idLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         JTextField idField = new JTextField(10);
 
-        panel.add(label);
+        JLabel emailLabel = new JLabel("Email:");
+        emailLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JTextField emailField = new JTextField(10);
+
+        JLabel passwordLabel = new JLabel("Password:");
+        passwordLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JPasswordField passwordField = new JPasswordField(10);
+
+        panel.add(idLabel);
         panel.add(idField);
+        panel.add(emailLabel);
+        panel.add(emailField);
+        panel.add(passwordLabel);
+        panel.add(passwordField);
 
         int result = JOptionPane.showConfirmDialog(this, panel, "Student Login", JOptionPane.OK_CANCEL_OPTION);
 
         if (result == JOptionPane.OK_OPTION) {
             try {
-                studentId = Integer.parseInt(idField.getText().trim());
+                String idText = idField.getText().trim();
+                String email = emailField.getText().trim();
+                String password = new String(passwordField.getPassword());
+
+                if (idText.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "All fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                studentId = Integer.parseInt(idText);
                 if (studentId > 0) {
-                    this.dispose();
-                    new StudentDashboard(studentId);
+                    // Validate credentials (you can add database validation here)
+                    if (validateStudentCredentials(studentId, email, password)) {
+                        this.dispose();
+                        new StudentDashboard(studentId);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Invalid credentials!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid Student ID!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -103,6 +129,12 @@ public class Login extends JFrame {
                 JOptionPane.showMessageDialog(this, "Please enter a valid Student ID!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    private boolean validateStudentCredentials(int studentId, String email, String password) {
+        // Simple validation - you can enhance this with database queries
+        // For now, accepting student1@college.edu / student123 as demo credential
+        return email.equals("student1@college.edu") && password.equals("student123");
     }
 
     public static void main(String[] args) {
