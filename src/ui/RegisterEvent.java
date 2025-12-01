@@ -18,100 +18,105 @@ public class RegisterEvent extends JFrame {
     private JButton cancelBtn;
 
     public RegisterEvent(int studentId) {
-        this.studentId = studentId;
+        try {
+            this.studentId = studentId;
 
-        setTitle("Register for Event");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(700, 450);
-        setLocationRelativeTo(null);
-        setResizable(false);
+            setTitle("Register for Event");
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            setSize(700, 450);
+            setLocationRelativeTo(null);
+            setResizable(false);
 
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout());
-        mainPanel.setBackground(new Color(240, 240, 240));
+            JPanel mainPanel = new JPanel();
+            mainPanel.setLayout(new BorderLayout());
+            mainPanel.setBackground(new Color(240, 240, 240));
 
-        // Header
-        JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(0, 102, 204));
-        JLabel titleLabel = new JLabel("Register for Event");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setForeground(Color.WHITE);
-        headerPanel.add(titleLabel);
+            // Header
+            JPanel headerPanel = new JPanel();
+            headerPanel.setBackground(new Color(0, 102, 204));
+            JLabel titleLabel = new JLabel("Register for Event");
+            titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            titleLabel.setForeground(Color.WHITE);
+            headerPanel.add(titleLabel);
 
-        // Form Panel
-        JPanel formPanel = new JPanel();
-        formPanel.setLayout(new BorderLayout());
-        formPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        formPanel.setBackground(new Color(240, 240, 240));
+            // Form Panel
+            JPanel formPanel = new JPanel();
+            formPanel.setLayout(new BorderLayout());
+            formPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+            formPanel.setBackground(new Color(240, 240, 240));
 
-        JLabel eventLabel = new JLabel("Select Event:");
-        eventLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        eventCombo = new JComboBox<>();
-        eventCombo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateEventDetails();
-            }
-        });
-        loadAvailableEvents();
+            JLabel eventLabel = new JLabel("Select Event:");
+            eventLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            eventCombo = new JComboBox<>();
+            eventCombo.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    updateEventDetails();
+                }
+            });
+            loadAvailableEvents();
 
-        JPanel comboPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        comboPanel.setBackground(new Color(240, 240, 240));
-        comboPanel.add(eventLabel);
-        comboPanel.add(eventCombo);
+            JPanel comboPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            comboPanel.setBackground(new Color(240, 240, 240));
+            comboPanel.add(eventLabel);
+            comboPanel.add(eventCombo);
 
-        eventDetailsArea = new JTextArea(8, 60);
-        eventDetailsArea.setEditable(false);
-        eventDetailsArea.setLineWrap(true);
-        eventDetailsArea.setWrapStyleWord(true);
-        eventDetailsArea.setFont(new Font("Arial", Font.PLAIN, 11));
-        eventDetailsArea.setBackground(new Color(255, 255, 255));
-        eventDetailsArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        JScrollPane scrollPane = new JScrollPane(eventDetailsArea);
+            eventDetailsArea = new JTextArea(8, 60);
+            eventDetailsArea.setEditable(false);
+            eventDetailsArea.setLineWrap(true);
+            eventDetailsArea.setWrapStyleWord(true);
+            eventDetailsArea.setFont(new Font("Arial", Font.PLAIN, 11));
+            eventDetailsArea.setBackground(new Color(255, 255, 255));
+            eventDetailsArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            JScrollPane scrollPane = new JScrollPane(eventDetailsArea);
 
-        formPanel.add(comboPanel, BorderLayout.NORTH);
-        formPanel.add(scrollPane, BorderLayout.CENTER);
+            formPanel.add(comboPanel, BorderLayout.NORTH);
+            formPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Button Panel
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBackground(new Color(240, 240, 240));
+            // Button Panel
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
+            buttonPanel.setBackground(new Color(240, 240, 240));
 
-        registerBtn = new JButton("Register");
-        registerBtn.setFont(new Font("Arial", Font.BOLD, 12));
-        registerBtn.setBackground(new Color(46, 204, 113));
-        registerBtn.setForeground(Color.WHITE);
-        registerBtn.setFocusPainted(false);
-        registerBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        registerBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                registerForEvent();
-            }
-        });
+            registerBtn = new JButton("Register");
+            registerBtn.setFont(new Font("Arial", Font.BOLD, 12));
+            registerBtn.setBackground(new Color(46, 204, 113));
+            registerBtn.setForeground(Color.WHITE);
+            registerBtn.setFocusPainted(false);
+            registerBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            registerBtn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    registerForEvent();
+                }
+            });
 
-        cancelBtn = new JButton("Cancel");
-        cancelBtn.setFont(new Font("Arial", Font.BOLD, 12));
-        cancelBtn.setBackground(new Color(231, 76, 60));
-        cancelBtn.setForeground(Color.WHITE);
-        cancelBtn.setFocusPainted(false);
-        cancelBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        cancelBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
+            cancelBtn = new JButton("Cancel");
+            cancelBtn.setFont(new Font("Arial", Font.BOLD, 12));
+            cancelBtn.setBackground(new Color(231, 76, 60));
+            cancelBtn.setForeground(Color.WHITE);
+            cancelBtn.setFocusPainted(false);
+            cancelBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            cancelBtn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    dispose();
+                }
+            });
 
-        buttonPanel.add(registerBtn);
-        buttonPanel.add(cancelBtn);
+            buttonPanel.add(registerBtn);
+            buttonPanel.add(cancelBtn);
 
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(formPanel, BorderLayout.CENTER);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+            mainPanel.add(headerPanel, BorderLayout.NORTH);
+            mainPanel.add(formPanel, BorderLayout.CENTER);
+            mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        add(mainPanel);
-        setVisible(true);
+            add(mainPanel);
+            setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Error initializing RegisterEvent: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
     }
 
     private void loadAvailableEvents() {
@@ -176,7 +181,8 @@ public class RegisterEvent extends JFrame {
             rs.close();
             pstmt.close();
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error loading events: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            eventCombo.addItem("Error: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             DBConnection.closeConnection(conn);
         }
