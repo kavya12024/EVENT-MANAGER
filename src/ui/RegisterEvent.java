@@ -13,6 +13,7 @@ import java.sql.SQLException;
 public class RegisterEvent extends JFrame {
     private int studentId;
     private JComboBox<String> eventCombo;
+    private JTextArea eventDetailsArea;
     private JButton registerBtn;
     private JButton cancelBtn;
 
@@ -21,7 +22,7 @@ public class RegisterEvent extends JFrame {
 
         setTitle("Register for Event");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(450, 250);
+        setSize(700, 450);
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -39,17 +40,37 @@ public class RegisterEvent extends JFrame {
 
         // Form Panel
         JPanel formPanel = new JPanel();
-        formPanel.setLayout(new GridLayout(2, 2, 10, 10));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        formPanel.setLayout(new BorderLayout());
+        formPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         formPanel.setBackground(new Color(240, 240, 240));
 
         JLabel eventLabel = new JLabel("Select Event:");
         eventLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         eventCombo = new JComboBox<>();
+        eventCombo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                updateEventDetails();
+            }
+        });
         loadAvailableEvents();
 
-        formPanel.add(eventLabel);
-        formPanel.add(eventCombo);
+        JPanel comboPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        comboPanel.setBackground(new Color(240, 240, 240));
+        comboPanel.add(eventLabel);
+        comboPanel.add(eventCombo);
+
+        eventDetailsArea = new JTextArea(8, 60);
+        eventDetailsArea.setEditable(false);
+        eventDetailsArea.setLineWrap(true);
+        eventDetailsArea.setWrapStyleWord(true);
+        eventDetailsArea.setFont(new Font("Arial", Font.PLAIN, 11));
+        eventDetailsArea.setBackground(new Color(255, 255, 255));
+        eventDetailsArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JScrollPane scrollPane = new JScrollPane(eventDetailsArea);
+
+        formPanel.add(comboPanel, BorderLayout.NORTH);
+        formPanel.add(scrollPane, BorderLayout.CENTER);
 
         // Button Panel
         JPanel buttonPanel = new JPanel();
@@ -158,6 +179,46 @@ public class RegisterEvent extends JFrame {
             JOptionPane.showMessageDialog(this, "Error loading events: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
             DBConnection.closeConnection(conn);
+        }
+    }
+
+    private void updateEventDetails() {
+        String selectedEvent = eventCombo.getSelectedItem().toString();
+        
+        if (selectedEvent.equals("No available events") || selectedEvent.contains("Error")) {
+            eventDetailsArea.setText("");
+            return;
+        }
+
+        try {
+            int eventId = Integer.parseInt(selectedEvent.split(" - ")[0]);
+            
+            Connection conn = DBConnection.getConnection();
+            String sql = "SELECT e.event_name, e.event_date, e.event_location, e.event_fees, e.event_description, o.organiser_name FROM event e " +
+                        "LEFT JOIN organiser o ON e.organiser_id = o.organiser_id WHERE e.event_id = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, eventId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                StringBuilder details = new StringBuilder();
+                details.append("EVENT DETAILS\n");
+                details.append("==========================================\n\n");
+                details.append("Event Name: ").append(rs.getString("event_name")).append("\n");
+                details.append("Date: ").append(rs.getDate("event_date")).append("\n");
+                details.append("Location: ").append(rs.getString("event_location")).append("\n");
+                details.append("Fees: ₹").append(rs.getDouble("event_fees")).append("\n");
+                details.append("Organiser: ").append(rs.getString("organiser_name")).append("\n\n");
+                details.append("Description:\n").append(rs.getString("event_description"));
+                
+                eventDetailsArea.setText(details.toString());
+            }
+            
+            rs.close();
+            pstmt.close();
+            DBConnection.closeConnection(conn);
+        } catch (Exception e) {
+            eventDetailsArea.setText("Error loading event details: " + e.getMessage());
         }
     }
 

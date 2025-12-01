@@ -7,16 +7,20 @@ public class Event {
     private String eventName;
     private LocalDate eventDate;
     private String eventDescription;
+    private String eventLocation;
+    private double eventFees;
     private int organiserId;
     private int maxParticipants;
 
     public Event() {}
 
-    public Event(int eventId, String eventName, LocalDate eventDate, String eventDescription, int organiserId, int maxParticipants) {
+    public Event(int eventId, String eventName, LocalDate eventDate, String eventDescription, String eventLocation, double eventFees, int organiserId, int maxParticipants) {
         this.eventId = eventId;
         this.eventName = eventName;
         this.eventDate = eventDate;
         this.eventDescription = eventDescription;
+        this.eventLocation = eventLocation;
+        this.eventFees = eventFees;
         this.organiserId = organiserId;
         this.maxParticipants = maxParticipants;
     }
@@ -51,6 +55,22 @@ public class Event {
 
     public void setEventDescription(String eventDescription) {
         this.eventDescription = eventDescription;
+    }
+
+    public String getEventLocation() {
+        return eventLocation;
+    }
+
+    public void setEventLocation(String eventLocation) {
+        this.eventLocation = eventLocation;
+    }
+
+    public double getEventFees() {
+        return eventFees;
+    }
+
+    public void setEventFees(double eventFees) {
+        this.eventFees = eventFees;
     }
 
     public int getOrganiserId() {

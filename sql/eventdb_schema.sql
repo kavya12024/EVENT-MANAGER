@@ -59,6 +59,8 @@ CREATE TABLE event (
     event_name VARCHAR(150) NOT NULL,
     event_date DATE NOT NULL,
     event_description VARCHAR(500),
+    event_location VARCHAR(150),
+    event_fees DECIMAL(10, 2) DEFAULT 0.00,
     organiser_id INT NOT NULL,
     max_participants INT DEFAULT 100,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

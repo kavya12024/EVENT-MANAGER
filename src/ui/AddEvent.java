@@ -16,6 +16,8 @@ import java.sql.SQLException;
 public class AddEvent extends JFrame {
     private JTextField eventNameField;
     private JTextField descriptionField;
+    private JTextField locationField;
+    private JTextField feesField;
     private JTextField maxParticipantsField;
     private JComboBox<Organiser> organiserCombo;
     private JTextField dateField;
@@ -25,7 +27,7 @@ public class AddEvent extends JFrame {
     public AddEvent() {
         setTitle("Add Event");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(500, 350);
+        setSize(550, 420);
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -43,7 +45,7 @@ public class AddEvent extends JFrame {
 
         // Form Panel
         JPanel formPanel = new JPanel();
-        formPanel.setLayout(new GridLayout(5, 2, 10, 10));
+        formPanel.setLayout(new GridLayout(7, 2, 10, 10));
         formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         formPanel.setBackground(new Color(240, 240, 240));
 
@@ -54,6 +56,14 @@ public class AddEvent extends JFrame {
         JLabel dateLabel = new JLabel("Event Date (YYYY-MM-DD):");
         dateLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         dateField = new JTextField();
+
+        JLabel locationLabel = new JLabel("Event Location:");
+        locationLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        locationField = new JTextField();
+
+        JLabel feesLabel = new JLabel("Event Fees (₹):");
+        feesLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        feesField = new JTextField("0");
 
         JLabel descriptionLabel = new JLabel("Description:");
         descriptionLabel.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -72,6 +82,10 @@ public class AddEvent extends JFrame {
         formPanel.add(eventNameField);
         formPanel.add(dateLabel);
         formPanel.add(dateField);
+        formPanel.add(locationLabel);
+        formPanel.add(locationField);
+        formPanel.add(feesLabel);
+        formPanel.add(feesField);
         formPanel.add(descriptionLabel);
         formPanel.add(descriptionField);
         formPanel.add(organiserLabel);
@@ -145,6 +159,8 @@ public class AddEvent extends JFrame {
     private void addEvent() {
         String eventName = eventNameField.getText().trim();
         String date = dateField.getText().trim();
+        String location = locationField.getText().trim();
+        String feesStr = feesField.getText().trim();
         String description = descriptionField.getText().trim();
         Organiser selectedOrganiser = (Organiser) organiserCombo.getSelectedItem();
         String maxParticipantsStr = maxParticipantsField.getText().trim();
@@ -156,6 +172,11 @@ public class AddEvent extends JFrame {
 
         if (date.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter event date!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (location.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter event location!", "Validation Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -171,6 +192,18 @@ public class AddEvent extends JFrame {
             return;
         }
 
+        double fees;
+        try {
+            fees = Double.parseDouble(feesStr);
+            if (fees < 0) {
+                JOptionPane.showMessageDialog(this, "Event fees cannot be negative!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Event fees must be a valid number!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         int maxParticipants;
         try {
             maxParticipants = Integer.parseInt(maxParticipantsStr);
@@ -182,17 +215,19 @@ public class AddEvent extends JFrame {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
-            String sql = "INSERT INTO event (event_name, event_date, event_description, organiser_id, max_participants) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO event (event_name, event_date, event_location, event_fees, event_description, organiser_id, max_participants) VALUES (?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, eventName);
             pstmt.setDate(2, Date.valueOf(date));
-            pstmt.setString(3, description.isEmpty() ? null : description);
-            pstmt.setInt(4, selectedOrganiser.getOrganiserId());
-            pstmt.setInt(5, maxParticipants);
+            pstmt.setString(3, location);
+            pstmt.setDouble(4, fees);
+            pstmt.setString(5, description.isEmpty() ? null : description);
+            pstmt.setInt(6, selectedOrganiser.getOrganiserId());
+            pstmt.setInt(7, maxParticipants);
 
             int result = pstmt.executeUpdate();
             if (result > 0) {
-                JOptionPane.showMessageDialog(this, "Event added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Event added successfully!\n\nEvent: " + eventName + "\nDate: " + date + "\nLocation: " + location + "\nFees: ₹" + fees, "Success", JOptionPane.INFORMATION_MESSAGE);
                 eventNameField.setText("");
                 dateField.setText("");
                 descriptionField.setText("");
