@@ -48,6 +48,16 @@ public class RegisterEvent extends JFrame {
             JLabel eventLabel = new JLabel("Select Event:");
             eventLabel.setFont(new Font("Arial", Font.PLAIN, 12));
             eventCombo = new JComboBox<>();
+            
+            // Initialize eventDetailsArea BEFORE adding action listener
+            eventDetailsArea = new JTextArea(8, 60);
+            eventDetailsArea.setEditable(false);
+            eventDetailsArea.setLineWrap(true);
+            eventDetailsArea.setWrapStyleWord(true);
+            eventDetailsArea.setFont(new Font("Arial", Font.PLAIN, 11));
+            eventDetailsArea.setBackground(new Color(255, 255, 255));
+            eventDetailsArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            
             eventCombo.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -61,13 +71,6 @@ public class RegisterEvent extends JFrame {
             comboPanel.add(eventLabel);
             comboPanel.add(eventCombo);
 
-            eventDetailsArea = new JTextArea(8, 60);
-            eventDetailsArea.setEditable(false);
-            eventDetailsArea.setLineWrap(true);
-            eventDetailsArea.setWrapStyleWord(true);
-            eventDetailsArea.setFont(new Font("Arial", Font.PLAIN, 11));
-            eventDetailsArea.setBackground(new Color(255, 255, 255));
-            eventDetailsArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
             JScrollPane scrollPane = new JScrollPane(eventDetailsArea);
 
             formPanel.add(comboPanel, BorderLayout.NORTH);
